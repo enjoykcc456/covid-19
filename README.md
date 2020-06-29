@@ -1,4 +1,4 @@
-## Welcome to GitHub Pages
+## COVID-19 Classifier With Transfer Learning
 
 You can use the [editor on GitHub](https://github.com/enjoykcc456/covid-19/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
 
