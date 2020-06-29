@@ -1,6 +1,6 @@
 ## COVID-19 Classifier With Transfer Learning
 
-<img src="covid-logo.png" class="img-responsive" alt="">
+<img src="img/covid-logo.png" class="img-responsive" alt="">
 
 Corona or COVID-19 is a virus that affects human and other mammal’s respiratory system. There are more than 10 millions confirmed cases reported by [WHO](https://covid19.who.int/?gclid=Cj0KCQjwoub3BRC6ARIsABGhnyap-6khHl2aUfbxrKfFFOT2qkw3pCYK8ocAp9Ua4tmsJf4LVTgtKSIaAqQqEALw_wcB) at the time this article is created.
 
@@ -15,7 +15,9 @@ Okay. Enough for the intro, let's start!
 A few notes before we get started:
 1. For simplicity, we will be writing our code and do our training on [Kaggle](https://www.kaggle.com/), utilizing the free GPU provided.
 2. [PyTorch](https://pytorch.org/) will be the Deep Learning framework used.
-3. There will only be function call throughout this article to avoid cluttering the page. The complete code will be available at [Jovian](https://jovian.ml/enjoy-kcc/covid-19-classifier). Please note that you will need to sign in to run the code.
+3. There will only be function call throughout this article to avoid cluttering the page. 
+The complete code will be available at [Jovian](https://jovian.ml/enjoy-kcc/covid-19-classifier). 
+Please note that you will need to sign in to run the code.
 
 Throughout this article, we will step through the following sections to finally get our COVID-19 classifier!
 1. Data Analysis
@@ -71,7 +73,7 @@ Read the csv file using pandas and show 10 samples.
 metadata_df = pd.read_csv(METADATA_CSV)
 metadata_df.sample(10)
 ```
-<img src="csv-sample.JPG" class="img-responsive" alt="">
+<img src="img/csv-sample.JPG" class="img-responsive" alt="">
 
 
 Get the size of the original train and test dataset.
@@ -82,9 +84,9 @@ test_data = metadata_df[metadata_df['Dataset_type'] == 'TEST']
 print(f'Shape of train set: {train_data.shape}')
 print(f'Shape of test set: {test_data.shape}')
 ```
-<img src="dataset-size.JPG" class="img-responsive" alt="">
+<img src="img/dataset-size.JPG" class="img-responsive" alt="">
 
-Let's us get the amount of null value in each attribute
+Let's us get the amount of null values in each attribute.
 ```markdown
 train_null_vals = train_data.isnull().sum()
 test_null_vals = test_data.isnull().sum()
@@ -92,8 +94,8 @@ print(f'The number of null values in train set: \n{train_null_vals}\n')
 print(f'The number of null values in test set: \n{test_null_vals}')
 train_null_vals.plot(kind='bar')
 ```
-<img src="null-value.JPG" class="img-responsive" alt="">
-<img src="null-value-graph.JPG" class="img-responsive" alt="">
+<img src="img/null-value.JPG" class="img-responsive" alt="">
+<img src="img/null-value-graph.JPG" class="img-responsive" alt="">
 
 
 
