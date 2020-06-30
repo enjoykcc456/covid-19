@@ -30,6 +30,7 @@ Throughout this article, we will step through the following sections to finally 
 ### 1. Data Analysis
 The data that we are going to use to train our classifier will be the [CoronaHack-Chest X-Ray-Dataset](https://www.kaggle.com/praveengovi/coronahack-chest-xraydataset) which is available in Kaggle. We will be exploring and analyzing the data to determine the right data to use for the training. 
 
+
 First, import all the necessary libraries.
 ```markdown
 import os
@@ -53,8 +54,10 @@ from torchvision.utils import make_grid
 from torchvision.datasets import ImageFolder
 %matplotlib inline
 ```
-`Please noted that when you run the notebook in Kaggle, you need to click 'Add data' at the top right, search for the dataset and add in into your notebook.
-Other than that, you could also start a new notebook with the dataset.`
+
+
+`Please noted that after the notebook is run in Kaggle, click 'Add data' at the top right, search for the dataset 'CoronaHack-Chest X-Ray-Dataset' and add in into the notebook.
+Other than that, one could also start a new notebook with the dataset.`
 
 
 Defined the constants to access the data and csv files. 
@@ -86,7 +89,8 @@ print(f'Shape of test set: {test_data.shape}')
 ```
 <img src="img/dataset-size.JPG" class="img-responsive" alt="">
 
-Let's us get the amount of null values in each attribute.
+
+Get the amount of null values in each attribute.
 ```markdown
 train_null_vals = train_data.isnull().sum()
 test_null_vals = test_data.isnull().sum()
