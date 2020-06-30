@@ -8,12 +8,11 @@ These viruses are actually closely associated with infections like pneumonia, lu
 
 Hence, the objective of this article would be to create a COVID-19 classifier which will be trained with chest x-ray images and is able to classify them as either positive (COVID-19 infected) or negative (Normal). 
 
-`Note: I am not a medical expert and there are definitely more reliable ways of detecting COVID-19. The main purpose of this article is to walk through the steps to create a classifier with PyTorch by using transfer learning and at the same time exploring how we could apply deep learning knowledge to the medical field.`
 
 Okay. Enough for the intro, let's start!
 
 A few notes before we get started:
-1. For simplicity, we will be writing our code and do our training on [Kaggle](https://www.kaggle.com/), utilizing the free GPU provided.
+1. For simplicity, we will be writing our code and doing our training on [Kaggle](https://www.kaggle.com/), utilizing the free GPU provided.
 2. [PyTorch](https://pytorch.org/) will be the Deep Learning framework used.
 3. There will only be function call throughout this article to avoid cluttering the page. 
 The complete code will be available at [Jovian](https://jovian.ml/enjoy-kcc/covid-19-classifier). 
@@ -62,12 +61,8 @@ from torchvision.datasets import ImageFolder
 ```
 
 
-
-
 `Please noted that after the notebook is run in Kaggle, click 'Add data' at the top right, search for the dataset 'CoronaHack-Chest X-Ray-Dataset' and add in into the notebook.
 Other than that, one could also start a new notebook with the dataset.`
-
-
 
 
 Defined the constants to access the data and csv files. 
@@ -81,9 +76,7 @@ METADATA_CSV = '../input/coronahack-chest-xraydataset/Chest_xray_Corona_Metadata
 ```
 
 
-
-
-Read the csv file using pandas and show 10 samples.
+Read the csv file using pandas and show 10 samples. 
 ```markdown
 metadata_df = pd.read_csv(METADATA_CSV)
 metadata_df.sample(10)
@@ -91,9 +84,7 @@ metadata_df.sample(10)
 <img src="img/csv-sample.JPG" class="img-responsive" alt="">
 
 
-
-
-Get the size of the original train and test dataset.
+Get the size of the original train and test dataset. We can see that there are 5286 and 624 images for train and test set respectively. Both are having 6 attributes.
 ```markdown
 train_data = metadata_df[metadata_df['Dataset_type'] == 'TRAIN']
 test_data = metadata_df[metadata_df['Dataset_type'] == 'TEST']
@@ -174,7 +165,7 @@ Hence, the model is going to be created with the training data compose of 'Norma
 
 
 ### Image Data Exploring
-Here, we do the preparation of data for training by getting on those are labeled as 'Normal' or 'Pnemonia + COVID-19'. Based on previous analysis, we know that there are only 58 images labeled as 'Pnemonia + COVID-19'. Hence, we will be taking almost equivalent amount of 'Normal' image to avoid data imbalance. Lastly, we create a new attribute 'target' to categorize 'Normal' as negative and 'Pnemonia + COVID-19' as positive.
+Here, we do the preparation of data for training by getting only those are labeled as 'Normal' or 'Pnemonia + COVID-19'. Based on previous analysis, we know that there are only 58 images labeled as 'Pnemonia + COVID-19'. Hence, we will be taking almost equivalent amount of 'Normal' images to avoid data imbalance. Lastly, we create a new attribute 'target' to categorize 'Normal' as negative (0) and 'Pnemonia + COVID-19' as positive (1).
 ```markdown
 # get the final train data with only entries labeled as 'Normal' or 'Pnemonia + COVID-19'
 normal_train_data = train_data[(train_data['Label'] == 'Normal')]
@@ -456,41 +447,9 @@ predict_and_plot(images, labels)
 
 
 
+### Limitations and Conclusion
+At the end of the training, the model achieved an accuracy of 100%. But, it is only trained and validated with a very little amount of data which is the major limitation in our case. The model is not trained and tested rigoruosly with huge amount of data to better generalize.
 
+To further improve the model, more data could be obtained and further augmented to train and finally test the model. Besides, further improvement is also possible by tweaking the hyperparameters.
 
-You can use the [editor on GitHub](https://github.com/enjoykcc456/covid-19/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
-
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
-
-### Markdown
-
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/enjoykcc456/covid-19/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+With this, we concludes our exploration on transfer learning with chest x-ray images. Thanks for reading!
