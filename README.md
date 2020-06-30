@@ -31,6 +31,7 @@ Throughout this article, we will step through the following sections to finally 
 The data that we are going to use to train our classifier will be the [CoronaHack-Chest X-Ray-Dataset](https://www.kaggle.com/praveengovi/coronahack-chest-xraydataset) which is available in Kaggle. We will be exploring and analyzing the data to determine the right data to use for the training. 
 
 
+
 First, import all the necessary libraries.
 ```markdown
 import os
@@ -56,8 +57,12 @@ from torchvision.datasets import ImageFolder
 ```
 
 
+
+
 `Please noted that after the notebook is run in Kaggle, click 'Add data' at the top right, search for the dataset 'CoronaHack-Chest X-Ray-Dataset' and add in into the notebook.
 Other than that, one could also start a new notebook with the dataset.`
+
+
 
 
 Defined the constants to access the data and csv files. 
@@ -71,12 +76,16 @@ METADATA_CSV = '../input/coronahack-chest-xraydataset/Chest_xray_Corona_Metadata
 ```
 
 
+
+
 Read the csv file using pandas and show 10 samples.
 ```markdown
 metadata_df = pd.read_csv(METADATA_CSV)
 metadata_df.sample(10)
 ```
 <img src="img/csv-sample.JPG" class="img-responsive" alt="">
+
+
 
 
 Get the size of the original train and test dataset.
@@ -90,7 +99,9 @@ print(f'Shape of test set: {test_data.shape}')
 <img src="img/dataset-size.JPG" class="img-responsive" alt="">
 
 
-Get the amount of null values in each attribute.
+
+
+Get the amount of null values in each attribute. With this we know that out of 5286 images in the train set, 5217 images actually have null value in attribute 'Label_2_Virus_category' and 1342 images are having null value in attribute 'Label_1_Virus_category'.
 ```markdown
 train_null_vals = train_data.isnull().sum()
 test_null_vals = test_data.isnull().sum()
@@ -100,6 +111,54 @@ train_null_vals.plot(kind='bar')
 ```
 <img src="img/null-value.JPG" class="img-responsive" alt="">
 <img src="img/null-value-graph.JPG" class="img-responsive" alt="">
+
+
+
+We subtitue null value with 'unknown' and plot the graphs to indentify the 
+```markdown
+targets = ['Label', 'Label_1_Virus_category', 'Label_2_Virus_category']
+fig, ax = plt.subplots(1, 3, figsize=(20, 4))
+sns.countplot(x=targets[0], data=filled_train_data, ax=ax[0])
+sns.countplot(x=targets[1], data=filled_train_data, ax=ax[1])
+sns.countplot(x=targets[2], data=filled_train_data, ax=ax[2])
+plt.show()
+```
+<img src="img/unknown-graph.JPG" class="img-responsive" alt="">
+
+
+
+```markdown
+fig, ax = plt.subplots(1, 3, figsize=(20, 4))
+sns.countplot(x=targets[0], data=train_data, ax=ax[0])
+sns.countplot(x=targets[1], data=train_data, ax=ax[1])
+sns.countplot(x=targets[2], data=train_data, ax=ax[2])
+plt.show()
+```
+<img src="img/no-unknown-graph.JPG" class="img-responsive" alt="">
+
+
+
+```markdown
+normal_cases = train_data[train_data['Label'] == 'Normal'].shape[0]
+pnemonia_covid_cases = train_data[(train_data['Label'] == 'Pnemonia') & (train_data['Label_2_Virus_category'] == 'COVID-19')].shape[0]
+normal_covid_cases = train_data[(train_data['Label'] == 'Normal') & (train_data['Label_2_Virus_category'] == 'COVID-19')].shape[0]
+
+label_2_unknown_cases = filled_train_data[filled_train_data['Label_2_Virus_category'] == 'unknown'].shape[0]
+label_2_covid_cases = filled_train_data[filled_train_data['Label_2_Virus_category'] == 'COVID-19'].shape[0]
+
+print(f'Normal cases: {normal_cases}')
+print(f'Cases where pnemonia + COVID-19 in Label_2_Virus_category: {pnemonia_covid_cases}')
+print(f'Cases where normal + COVID-19 in Label_2_Virus_category: {normal_covid_cases}')
+print(f'Percentage of unknown value and COVID-19 value in total cases: {(label_2_unknown_cases/filled_train_data.shape[0])*100:.2f}% | {(label_2_covid_cases/filled_train_data.shape[0])*100:.2f}%')
+```
+<img src="img/cases-results.JPG" class="img-responsive" alt="">
+1. All COVID-19 cases are labeled with Pnemonia and none is labeled as normal.
+2. Under attribute of 'Label_2_Virus_category', 98.69% of entries is unknown and only 1.10% is categorized as COVID-19.
+3. The remaining 0.2% are categorized as ARDS, SARS and Streptococcus.
+Hence, the model is going to be created with the training data compose of 'Normal' and 'Pnemonia + COVID-19' images and finally able to classify them accordingly.
+
+
+From the graphs plotted, we can actually observe that:
 
 
 
