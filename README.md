@@ -152,13 +152,157 @@ print(f'Cases where normal + COVID-19 in Label_2_Virus_category: {normal_covid_c
 print(f'Percentage of unknown value and COVID-19 value in total cases: {(label_2_unknown_cases/filled_train_data.shape[0])*100:.2f}% | {(label_2_covid_cases/filled_train_data.shape[0])*100:.2f}%')
 ```
 <img src="img/cases-results.JPG" class="img-responsive" alt="">
+
+
+
+
+From the graphs plotted, we can actually observe that:
 1. All COVID-19 cases are labeled with Pnemonia and none is labeled as normal.
 2. Under attribute of 'Label_2_Virus_category', 98.69% of entries is unknown and only 1.10% is categorized as COVID-19.
 3. The remaining 0.2% are categorized as ARDS, SARS and Streptococcus.
 Hence, the model is going to be created with the training data compose of 'Normal' and 'Pnemonia + COVID-19' images and finally able to classify them accordingly.
 
 
-From the graphs plotted, we can actually observe that:
+
+### Image Data Exploring
+Here, we do the preparation of data for training by getting on those are labeled as 'Normal' or 'Pnemonia + COVID-19'. Based on previous analysis, we know that there are only 58 images labeled as 'Pnemonia + COVID-19'. Hence, we will be taking almost equivalent amount of 'Normal' image to avoid data imbalance. Lastly, we create a new attribute 'target' to categorize 'Normal' as negative and 'Pnemonia + COVID-19' as positive.
+```markdown
+# get the final train data with only entries labeled as 'Normal' or 'Pnemonia + COVID-19'
+normal_train_data = train_data[(train_data['Label'] == 'Normal')]
+pnemonia_covid_train_data = train_data[((train_data['Label'] == 'Pnemonia') & (train_data['Label_2_Virus_category'] == 'COVID-19'))]
+print(f'Dataset size for "Pnemonia + COVID-19": {len(pnemonia_covid_train_data)}')
+
+# shuffle the data with 'Normal'
+normal_train_data = shuffle(normal_train_data, random_state=1)
+
+# get only 1/22 portion of the total 'Normal' data to reduce data imbalance between both classes
+normal_train_data = normal_train_data.sample(frac=(1/22))
+print(f'Dataset size for "Normal": {len(normal_train_data)}')
+
+# create the final train data with all 'Pnemonia + COVID-19' entries and portion of 'Normal' entries 
+final_train_data = pd.concat([normal_train_data, pnemonia_covid_train_data], axis=0)
+
+# create target attribute to categorize 'Normal' as negative and 'Pnemonia + COVID-19' as positive
+targets = {0: "negative", 1: "positive"}
+final_train_data['target'] = [0 if label == 'Normal' else 1 for label in final_train_data['Label']]
+print(f'Final size of the dataset: {len(final_train_data)}')
+```
+<img src="img/normal-covid-sizes.JPG" class="img-responsive" alt="">
+
+
+
+Let's look at some sample of the images.
+```markdown
+# show sample of 'Normal'
+show_sample(*dataset[1166], invert=False)
+```
+<img src="img/normal-image.JPG" class="img-responsive" alt="">
+
+```markdown
+# show sample of 'Pnemonia + COVID-19'
+show_sample(*dataset[5262], invert=False)
+```
+<img src="img/covid-image.JPG" class="img-responsive" alt="">
+
+
+
+### Data Augmentation
+As the amount of data available for use is actually quite few, we will need to do some data augmentation. This method is useful when we have little amount of data  to increase the variety of the images being passed to model. We will do some resize to ensure every images have the same size, do some random horizontal flip, random rotation etc.
+```mardown
+imagenet_stats = ([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+
+train_tfms = transforms.Compose([
+    transforms.Resize((256, 256)), 
+    transforms.RandomHorizontalFlip(), 
+    transforms.RandomRotation(10),
+    transforms.ToTensor(), 
+#     transforms.RandomErasing(inplace=True),
+    transforms.Normalize(*imagenet_stats, inplace=True),
+])
+
+valid_tfms = transforms.Compose([
+    transforms.Resize((256, 256)), 
+    transforms.ToTensor(), 
+    transforms.Normalize(*imagenet_stats),
+])
+```
+
+Then, we will split the train and test set with ratio of 9:1.
+```markdown
+np.random.seed(42)
+msk = np.random.rand(len(final_train_data)) < 0.9
+
+train_df = final_train_data[msk].reset_index()
+val_df = final_train_data[~msk].reset_index()
+```
+
+
+
+
+### Data Loaders
+Here, we create the data loaders for our train and test size with a batch size of 8. 
+```markdown
+batch_size = 8
+train_dataset = COVID19Dataset(train_df, TRAIN_DIR, transform=train_tfms)
+val_dataset = COVID19Dataset(val_df, TRAIN_DIR, transform=valid_tfms)
+```
+```markdown
+train_data_loader = DataLoader(train_dataset, batch_size, shuffle=True, num_workers=3, pin_memory=True)
+val_data_loader = DataLoader(val_dataset, batch_size, num_workers=2, pin_memory=True)
+```
+```markdown
+show_batch(train_data_loader, invert=True)
+```
+<img src="img/batch-images.JPG" class="img-responsive" alt="">
+
+
+
+
+### Training With Transfer Learning
+Here, we define our COVIDResnet model class inherited from the ImageClassificationBase. We load the pre-trained resnet50 model from torchvision, retain its feature extraction layers and replace the top layer (which normally is the layer for classification) with our own layer of 2 classes (positive and negative).
+```markdown
+class COVIDResnet(ImageClassificationBase):
+    def __init__(self):
+        super().__init__()
+        # Use a pretrained model
+        self.network = models.resnet50(pretrained=True)
+        # Replace last layer
+        num_ftrs = self.network.fc.in_features
+        self.network.fc = nn.Linear(num_ftrs, 2)
+    
+    def forward(self, xb):
+        return torch.softmax(self.network(xb), dim=1)
+    
+    def freeze(self):
+        # To freeze the residual layers
+        for param in self.network.parameters():
+            param.require_grad = False
+        for param in self.network.fc.parameters():
+            param.require_grad = True
+    
+    def unfreeze(self):
+        # Unfreeze all layers
+        for param in self.network.parameters():
+            param.require_grad = True
+```
+
+
+
+Next, we will check the type device we are running and use GPU if it is available.
+```markdown
+device = get_default_device()
+device
+```
+<img src="img/device.JPG" class="img-responsive" alt="">
+
+
+After that, load the data loader into the device.
+```markdown
+train_data_loader = DeviceDataLoader(train_data_loader, device)
+val_data_loader = DeviceDataLoader(val_data_loader, device)
+```
+
+
 
 
 
