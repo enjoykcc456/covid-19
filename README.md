@@ -157,7 +157,7 @@ From the graphs plotted, we can actually observe that:
 2. Under attribute of 'Label_2_Virus_category', 98.69% of entries is unknown and only 1.10% is categorized as COVID-19.
 3. The remaining 0.2% are categorized as ARDS, SARS and Streptococcus.
 
-Hence, the model is going to be created with the training data compose of 'Normal' and 'Pnemonia + COVID-19' images and finally able to classify them accordingly.
+Hence, the model is going to be created with the training data compose of 'Normal' (Negative) and 'Pnemonia + COVID-19' (Positive) images and finally able to classify them accordingly.
 
 
 
