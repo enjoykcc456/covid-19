@@ -303,13 +303,13 @@ device
 <img src="img/device.JPG" class="img-responsive" alt="">
 
 
-After that, load the data loader into the device.
+After that, load the data loader into cuda device.
 ```markdown
 train_data_loader = DeviceDataLoader(train_data_loader, device)
 val_data_loader = DeviceDataLoader(val_data_loader, device)
 ```
 
-Load the model into GPU device.
+Load the model into cuda device too.
 ```markdown
 model = to_device(COVIDResnet(), device)
 ```
